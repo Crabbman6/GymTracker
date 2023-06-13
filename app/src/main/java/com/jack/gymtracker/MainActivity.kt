@@ -25,20 +25,50 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.material.Typography
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 
 
+val Roboto = FontFamily(
+    Font(R.font.roboto_light, FontWeight.Light),
+    Font(R.font.roboto_regular, FontWeight.Normal),
+    Font(R.font.roboto_medium, FontWeight.Medium),
+    Font(R.font.roboto_bold, FontWeight.Bold)
+)
+
+val Typography = Typography(
+    defaultFontFamily = Roboto,
+    body1 = TextStyle(
+        fontFamily = Roboto,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp
+    )
+)
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            GymTrackerTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background) {
-                    GymTrackerUI()
+            MaterialTheme(
+                // Typography for font
+                typography = Typography,
+                // Sets main content of MainActivity to be the UI
+                content = {
+                    Surface(modifier = Modifier.fillMaxSize(), color = Color.DarkGray) {
+                        GymTrackerUI()
+                    }
                 }
-            }
+            )
         }
     }
 }
@@ -53,22 +83,59 @@ fun GymTrackerUI() {
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp),
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Exercise Name", style = MaterialTheme.typography.h4)
+            Text(
+                text = "Exercise Name",
+                style = MaterialTheme.typography.h4.copy(color = Color.White)
+            )
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Current Set: $currentSet", style = MaterialTheme.typography.h5)
+
+            Text(
+                text = "Current Set: $currentSet",
+                style = MaterialTheme.typography.h5.copy(color = Color.White)
+            )
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Remaining Sets: ${totalSets - currentSet}", style = MaterialTheme.typography.h5)
+
+            Text(
+                text = "Remaining Sets: ${totalSets - currentSet}",
+                style = MaterialTheme.typography.h5.copy(color = Color.White)
+            )
         }
 
-        Button(
-            onClick = { if (currentSet < totalSets) currentSet++ },
-            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp),
-            contentPadding = PaddingValues(horizontal = 30.dp, vertical = 12.dp)
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
         ) {
-            Text(text = "Next Set", style = MaterialTheme.typography.h5)
+            // Next set button
+            Button(
+                onClick = { if (currentSet < totalSets) currentSet++ },
+                modifier = Modifier
+                    .fillMaxWidth() // Button spans width of the screen
+                    .padding(horizontal = 16.dp) // Adds padding
+                    .clip(RoundedCornerShape(12.dp)), // Makes corners of the button rounded
+                contentPadding = PaddingValues(horizontal = 30.dp, vertical = 12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+            ) {
+                Text(text = "Next Set", style = MaterialTheme.typography.h5)
+            }
+            Spacer(modifier = Modifier.height(16.dp)) // Adds space between buttons
+            // Reset button
+            Button(
+                onClick = { currentSet = 0 }, // Resets currentSet to 0
+                modifier = Modifier
+                    .fillMaxWidth() // Button spans width of screen
+                    .padding(horizontal = 16.dp) // Adds padding
+                    .clip(RoundedCornerShape(12.dp)),
+                contentPadding = PaddingValues(horizontal = 30.dp, vertical = 12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF03A9F4)) // Light blue
+            ) {
+                Text(text = "Reset", style = MaterialTheme.typography.h5)
+            }
         }
     }
 }
