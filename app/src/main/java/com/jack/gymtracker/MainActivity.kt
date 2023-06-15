@@ -36,6 +36,19 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.TextField
+import androidx.compose.ui.text.input.KeyboardType
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.graphics.SolidColor
+
 
 
 val Roboto = FontFamily(
@@ -76,16 +89,21 @@ class MainActivity : ComponentActivity() {
 /* This is the function that handles the UI for the main page */
 /* It uses the androidx.compose class to handle the UI through functions */
 
+
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun GymTrackerUI() {
-    val totalSets = 5  // Change this to the total number of sets
+    val totalSets = remember { mutableStateOf(5)} // Change this to the total number of sets
     var currentSet by remember { mutableStateOf(0) }
+    var timerValue by remember { mutableStateOf(0) }
+    var timerRunning by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 16.dp),
+                .align(Alignment.TopCenter) // Align to top center
+                .clip(RoundedCornerShape(12.dp)) // Rounded Corner
+                .padding(top = 16.dp), // Spacing
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -101,8 +119,18 @@ fun GymTrackerUI() {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Remaining Sets: ${totalSets - currentSet}",
+                text = "Remaining Sets: ${totalSets.value - currentSet}",
                 style = MaterialTheme.typography.h5.copy(color = Color.White)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextField(
+                value = totalSets.value.toString(),
+                onValueChange = { totalSets.value = it.toIntOrNull() ?: totalSets.value },
+                label = { Text("Tap to change remaining sets") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+
             )
         }
 
@@ -113,7 +141,7 @@ fun GymTrackerUI() {
         ) {
             // Next set button
             Button(
-                onClick = { if (currentSet < totalSets) currentSet++ },
+                onClick = { if (currentSet < totalSets.value) currentSet++ },
                 modifier = Modifier
                     .fillMaxWidth() // Button spans width of the screen
                     .padding(horizontal = 16.dp) // Adds padding
@@ -137,9 +165,49 @@ fun GymTrackerUI() {
                 Text(text = "Reset", style = MaterialTheme.typography.h5)
             }
         }
+//Timer
+        Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .border(4.dp, Color.White, RoundedCornerShape(12.dp))
+                    .background(Color.Transparent, RoundedCornerShape(12.dp))
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Button(
+                        onClick = { timerRunning = !timerRunning },
+                        contentPadding = PaddingValues(horizontal = 30.dp, vertical = 12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0XFF03A9F4))
+                    ) {
+                        Text(
+                            text = if (timerRunning) "Stop Timer" else "Start Timer",
+                            style = MaterialTheme.typography.h5
+                        )
+                    }
+
+                    Text(
+                        text = "Timer: $timerValue",
+                        style = MaterialTheme.typography.h4.copy(color = Color.White),
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+
+                LaunchedEffect(timerRunning) {
+                    if (timerRunning) {
+                        while (timerRunning) {
+                            delay(1000L)
+                            timerValue++
+                        }
+                    } else {
+                        timerValue = 0
+                    }
+                }
+            }
+        }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
