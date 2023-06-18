@@ -46,6 +46,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.material.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.graphics.SolidColor
 
@@ -97,6 +98,7 @@ fun GymTrackerUI() {
     var currentSet by remember { mutableStateOf(0) }
     var timerValue by remember { mutableStateOf(0) }
     var timerRunning by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false)}
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -124,14 +126,22 @@ fun GymTrackerUI() {
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            TextField(
-                value = totalSets.value.toString(),
-                onValueChange = { totalSets.value = it.toIntOrNull() ?: totalSets.value },
-                label = { Text("Tap to change remaining sets") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-
-            )
+            // Button for Set Counter
+            Button(
+                onClick = {
+                    showDialog = true
+                },
+                // Design of the button
+                modifier = Modifier
+                    .fillMaxWidth() // Button spans width of screen
+                    .padding(horizontal = 16.dp), // Padding
+                // Padding for the content inside the button (text)
+                contentPadding = PaddingValues(horizontal = 30.dp, vertical = 12.dp),
+                // Set button color
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF03A9F4)) // Light Blue
+            ) {
+                Text(text = "Set Count", style = MaterialTheme.typography.h5)
+            }
         }
 
         Column(
@@ -206,6 +216,35 @@ fun GymTrackerUI() {
                 }
             }
         }
+        // Checks to see if showDialog is true
+        if (showDialog) {
+            // Composable function to display alert dialog on screen
+            AlertDialog(
+                // Lambda function called when user tries to exit alertDialog, basically closes dialog
+                onDismissRequest = { showDialog = false },
+                // Title of the dialog aleret
+                title = { Text(text = "Set Count") },
+                // Composable function to display content in the dialog alert.
+                text = {
+                    TextField(
+                        // Sets initial value
+                        value = totalSets.value.toString(),
+                        // This handles how the value changes when the user enters a number
+                        onValueChange = { newValue ->
+                            totalSets.value = if (newValue.isEmpty()) 0 else newValue.toIntOrNull() ?: totalSets.value
+                        },
+                        // User can only enter a number
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                },
+                confirmButton = {
+                    Button(onClick = { showDialog = false }) {
+                        Text("Confirm")
+                    }
+                }
+            )
+        }
+
     }
 }
 
