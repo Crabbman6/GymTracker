@@ -46,10 +46,23 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.graphics.SolidColor
-
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.compose.material.Card
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.navigation.NavController
 
 
 val Roboto = FontFamily(
@@ -68,18 +81,77 @@ val Typography = Typography(
     )
 )
 
+// Landing Page Function. Handles the page that will display when the app opens.
+
+@Composable
+fun LandingPage(onOptionSelected: (String) -> Unit) {
+    Surface(color = Color.DarkGray, modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+            Text(
+                text = "Choose an option:",
+                style = MaterialTheme.typography.h4.copy(color = Color.White),
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            OptionCard("Set Tracker", onOptionSelected)
+        }
+    }
+}
+
+// Handles the Cards that display the different features inside the application (Set Tracker, Notes)
+
+
+@Composable
+fun OptionCard(option: String, onOptionSelected: (String) -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .clickable { onOptionSelected(option) },
+        shape = RoundedCornerShape(8.dp),
+        elevation = 8.dp,
+        backgroundColor = Color.White
+    ) {
+        Box(modifier = Modifier.padding(16.dp)) {
+            Text (
+                text = option,
+                // Styling for the text
+                style = MaterialTheme.typography.h5.copy(color = Color.Black)
+            )
+        }
+    }
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            // navController for landing page
+            val navController = rememberNavController()
             MaterialTheme(
                 // Typography for font
                 typography = Typography,
                 // Sets main content of MainActivity to be the UI
                 content = {
                     Surface(modifier = Modifier.fillMaxSize(), color = Color.DarkGray) {
-                        GymTrackerUI()
+                        NavHost(navController, startDestination = "landingPage") {
+                            composable("landingPage") {
+                                LandingPage{ option ->
+                                    when (option) {
+                                        // When Set Tracker card is tapped, navigate to that page
+                                        "Set Tracker" -> navController.navigate("setTracker")
+                                    }
+                                }
+                            }
+                            composable ("setTracker") {
+                                GymTrackerUI(navController)
+                            }
+                        }
                     }
                 }
             )
@@ -93,75 +165,116 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun GymTrackerUI() {
-    val totalSets = remember { mutableStateOf(5)} // Change this to the total number of sets
+fun GymTrackerUI(navController: NavController) {
+    val totalSets = remember { mutableStateOf(5) }
     var currentSet by remember { mutableStateOf(0) }
     var timerValue by remember { mutableStateOf(0) }
     var timerRunning by remember { mutableStateOf(false) }
-    var showDialog by remember { mutableStateOf(false)}
+    var showDialog by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        TopAppBar(
+            title = { Text("Set Tracker", color = Color.White, style = MaterialTheme.typography.h4.copy(fontWeight = FontWeight.Bold)) },
+            navigationIcon = {
+                IconButton(onClick = { navController.navigateUp() }) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                }
+            },
+            backgroundColor = Color.DarkGray,
+            contentColor = Color.White
+        )
+
+// Set Count Button
         Column(
             modifier = Modifier
-                .align(Alignment.TopCenter) // Align to top center
-                .clip(RoundedCornerShape(12.dp)) // Rounded Corner
-                .padding(top = 16.dp), // Spacing
+                .padding(top = 16.dp)
+                .align(Alignment.CenterHorizontally),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Exercise Name",
-                style = MaterialTheme.typography.h4.copy(color = Color.White)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = { showDialog = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                contentPadding = PaddingValues(horizontal = 30.dp, vertical = 12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF03A9F4))
+            ) {
+                Text(text = "Set Count", style = MaterialTheme.typography.h5)
+            }
 
+            // Current set and Remaining sets text
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Current Set: $currentSet",
-                style = MaterialTheme.typography.h5.copy(color = Color.White)
+                style = MaterialTheme.typography.h5.copy(color = Color.White),
             )
             Spacer(modifier = Modifier.height(16.dp))
-
             Text(
                 text = "Remaining Sets: ${totalSets.value - currentSet}",
                 style = MaterialTheme.typography.h5.copy(color = Color.White)
             )
-            Spacer(modifier = Modifier.height(16.dp))
+        }
 
-            // Button for Set Counter
-            Button(
-                onClick = {
-                    showDialog = true
-                },
-                // Design of the button
-                modifier = Modifier
-                    .fillMaxWidth() // Button spans width of screen
-                    .padding(horizontal = 16.dp), // Padding
-                // Padding for the content inside the button (text)
-                contentPadding = PaddingValues(horizontal = 30.dp, vertical = 12.dp),
-                // Set button color
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF03A9F4)) // Light Blue
-            ) {
-                Text(text = "Set Count", style = MaterialTheme.typography.h5)
+
+        // Timer
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Button(
+                    onClick = { timerRunning = !timerRunning },
+                    contentPadding = PaddingValues(horizontal = 30.dp, vertical = 12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0XFF03A9F4))
+                ) {
+                    Text(
+                        text = if (timerRunning) "Stop Timer" else "Start Timer",
+                        style = MaterialTheme.typography.h5
+                    )
+                }
+
+                Text(
+                    text = "Timer: $timerValue",
+                    style = MaterialTheme.typography.h4.copy(color = Color.White),
+                    modifier = Modifier.padding(top = 16.dp)
+                )
+            }
+
+            LaunchedEffect(timerRunning) {
+                if (timerRunning) {
+                    while (timerRunning) {
+                        delay(1000L)
+                        timerValue++
+                    }
+                } else {
+                    timerValue = 0
+                }
             }
         }
 
+        // Next Set and Reset Buttons
         Column(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
                 .padding(bottom = 16.dp)
+                .align(Alignment.CenterHorizontally),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Next set button
             Button(
                 onClick = { if (currentSet < totalSets.value) currentSet++ },
                 modifier = Modifier
-                    .fillMaxWidth() // Button spans width of the screen
-                    .padding(horizontal = 16.dp) // Adds padding
-                    .clip(RoundedCornerShape(12.dp)), // Makes corners of the button rounded
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(12.dp)),
                 contentPadding = PaddingValues(horizontal = 30.dp, vertical = 12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
             ) {
                 Text(text = "Next Set", style = MaterialTheme.typography.h5)
             }
             Spacer(modifier = Modifier.height(16.dp)) // Adds space between buttons
+
             // Reset button
             Button(
                 onClick = { currentSet = 0 }, // Resets currentSet to 0
@@ -175,54 +288,14 @@ fun GymTrackerUI() {
                 Text(text = "Reset", style = MaterialTheme.typography.h5)
             }
         }
-//Timer
-        Box(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .border(4.dp, Color.White, RoundedCornerShape(12.dp))
-                    .background(Color.Transparent, RoundedCornerShape(12.dp))
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Button(
-                        onClick = { timerRunning = !timerRunning },
-                        contentPadding = PaddingValues(horizontal = 30.dp, vertical = 12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0XFF03A9F4))
-                    ) {
-                        Text(
-                            text = if (timerRunning) "Stop Timer" else "Start Timer",
-                            style = MaterialTheme.typography.h5
-                        )
-                    }
 
-                    Text(
-                        text = "Timer: $timerValue",
-                        style = MaterialTheme.typography.h4.copy(color = Color.White),
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
-                }
-
-                LaunchedEffect(timerRunning) {
-                    if (timerRunning) {
-                        while (timerRunning) {
-                            delay(1000L)
-                            timerValue++
-                        }
-                    } else {
-                        timerValue = 0
-                    }
-                }
-            }
-        }
         // Checks to see if showDialog is true
         if (showDialog) {
             // Composable function to display alert dialog on screen
             AlertDialog(
                 // Lambda function called when user tries to exit alertDialog, basically closes dialog
                 onDismissRequest = { showDialog = false },
-                // Title of the dialog aleret
+                // Title of the dialog alert
                 title = { Text(text = "Set Count") },
                 // Composable function to display content in the dialog alert.
                 text = {
@@ -244,9 +317,9 @@ fun GymTrackerUI() {
                 }
             )
         }
-
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
@@ -254,7 +327,9 @@ fun GymTrackerUI() {
 
 fun GreetingPreview() {
     GymTrackerTheme {
-        GymTrackerUI()
+        // Create a fake navController for preview purposes
+        val navController = rememberNavController()
+        GymTrackerUI(navController)
     }
 }
 
