@@ -99,6 +99,7 @@ fun LandingPage(onOptionSelected: (String) -> Unit) {
                 modifier = Modifier.padding(bottom = 16.dp)
             )
             OptionCard("Set Tracker", onOptionSelected)
+            OptionCard("Notes", onOptionSelected)
         }
     }
 }
@@ -145,11 +146,17 @@ class MainActivity : ComponentActivity() {
                                     when (option) {
                                         // When Set Tracker card is tapped, navigate to that page
                                         "Set Tracker" -> navController.navigate("setTracker")
+                                        // When Notes card is tapped, navigate to that page
+                                        "Notes" -> navController.navigate("notes")
                                     }
                                 }
+
                             }
                             composable ("setTracker") {
                                 GymTrackerUI(navController)
+                            }
+                            composable ("notes") {
+                                notes(navController)
                             }
                         }
                     }
@@ -159,9 +166,30 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/* This is the function that handles the UI for the main page */
-/* It uses the androidx.compose class to handle the UI through functions */
 
+@Composable
+fun notes(navController: NavController) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        TopAppBar(
+            title = {
+                Text(
+                    "Notes",
+                    color = Color.White,
+                    style = MaterialTheme.typography.h4.copy(fontWeight = FontWeight.Bold)
+                )
+            },
+            navigationIcon = {
+                IconButton(onClick = { navController.navigateUp() }) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                }
+            },
+            backgroundColor = Color.DarkGray,
+            contentColor = Color.White
+        )
+    }
+}
+/* This is the function that handles the set tracker */
+/* It uses the androidx.compose class to handle the UI through functions */
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
