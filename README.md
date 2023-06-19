@@ -1,5 +1,9 @@
 # MinimalMuscle: A Lightweight Fitness Tracker
 
+![App Demo](https://i.imgur.com/pa82hj4.gif)
+
+
+
 MinimalMuscle is a simple, no-nonsense fitness tracking app designed to help users keep track of their workouts. The app is built using the latest technologies and is designed to be lightweight and easy to use.
 
 ## Tech Stack
