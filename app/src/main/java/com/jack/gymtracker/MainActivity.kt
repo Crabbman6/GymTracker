@@ -40,19 +40,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.TextField
 import androidx.compose.ui.text.input.KeyboardType
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.foundation.border
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -63,7 +56,21 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.navigation.NavController
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.runtime.*
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.first
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 
+// Create DataStore instance for SharedPreferences. This is for saving notes.
+val Context.dataStore by preferencesDataStore("notes")
 
 val Roboto = FontFamily(
     Font(R.font.roboto_light, FontWeight.Light),
@@ -81,6 +88,7 @@ val Typography = Typography(
     )
 )
 
+
 // Landing Page Function. Handles the page that will display when the app opens.
 
 @Composable
@@ -94,7 +102,7 @@ fun LandingPage(onOptionSelected: (String) -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
             ) {
             Text(
-                text = "Choose an option:",
+                text = "MinimalMuscle",
                 style = MaterialTheme.typography.h4.copy(color = Color.White),
                 modifier = Modifier.padding(bottom = 16.dp)
             )
@@ -156,7 +164,7 @@ class MainActivity : ComponentActivity() {
                                 GymTrackerUI(navController)
                             }
                             composable ("notes") {
-                                notes(navController)
+                                notes(navController, this@MainActivity.dataStore)
                             }
                         }
                     }
@@ -168,7 +176,15 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun notes(navController: NavController) {
+fun notes(navController: NavController, dataStore: DataStore<Preferences>) {
+    var textState by remember { mutableStateOf(TextFieldValue(""))}
+
+    LaunchedEffect(key1 = Unit) {
+        val key = stringPreferencesKey("notes")
+        val savedNotes = dataStore.data.first()[key] ?: ""
+        textState = TextFieldValue(savedNotes)
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
             title = {
@@ -186,6 +202,30 @@ fun notes(navController: NavController) {
             backgroundColor = Color.DarkGray,
             contentColor = Color.White
         )
+
+        BasicTextField(
+            value = textState,
+            onValueChange = { textState = it},
+            modifier = Modifier
+                .clickable {}
+                .fillMaxSize()
+                .padding(8.dp),
+
+            textStyle = TextStyle(color = Color.White, fontSize = 28.sp),
+            singleLine = false,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.None
+            )
+        )
+        // This is used to save the notes to SharedPreferences whenever the text changes
+        LaunchedEffect(textState.text) {
+            val key = stringPreferencesKey("notes")
+            dataStore.edit { preferences ->
+                preferences[key] = textState.text
+            }
+        }
     }
 }
 /* This is the function that handles the set tracker */
