@@ -8,10 +8,10 @@ MinimalMuscle is a simple, no-nonsense fitness tracking app designed to help use
 
 ## Tech Stack
 
-- **Kotlin**: The app is written entirely in Kotlin
-- **Android Jetpack Compose**: The UI is built using Jetpack Compose
-- **Android DataStore**: For data persistence, the app uses DataStore
-- **Coroutines**: For handling background tasks such as data loading, the app uses Kotlin Coroutines.
+- **Kotlin**
+- **Android Jetpack Compose**
+- **Android DataStore**
+- **Coroutines**
 
 ## Features
 
